@@ -1,24 +1,32 @@
--- Script SQL para Sistema de Nómina y Gestión Empresarial
+SET FOREIGN_KEY_CHECKS = 0;
 
--- ========================================
--- CREACIÓN DE BASE DE DATOS
--- ========================================
-CREATE DATABASE IF NOT EXISTS sistema_nomina;
-USE sistema_nomina;
+-- Asegurar que las vistas no generen conflictos antes de recrear tablas
+DROP VIEW IF EXISTS vista_nomina_detallada;
+DROP VIEW IF EXISTS vista_empleados;
+
+-- Eliminar tablas para mantener definiciones consistentes
+DROP TABLE IF EXISTS transacciones_nomina;
+DROP TABLE IF EXISTS pagos_nomina;
+DROP TABLE IF EXISTS novedades;
+DROP TABLE IF EXISTS ventas;
+DROP TABLE IF EXISTS nomina;
+DROP TABLE IF EXISTS periodo_nomina;
+DROP TABLE IF EXISTS usuarios;
+DROP TABLE IF EXISTS empresa;
+DROP TABLE IF EXISTS roles;
+
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- ========================================
 -- TABLA DE ROLES (Normalización)
 -- ========================================
-CREATE TABLE roles (
+CREATE TABLE IF NOT EXISTS roles (
     id INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     descripcion TEXT
 );
 
--- ========================================
--- TABLA EMPRESA
--- ========================================
-CREATE TABLE empresa (
+CREATE TABLE IF NOT EXISTS empresa (
     id INT PRIMARY KEY AUTO_INCREMENT,
     nit VARCHAR(20) NOT NULL UNIQUE,
     nombre VARCHAR(200) NOT NULL,
@@ -39,7 +47,7 @@ CREATE TABLE empresa (
 -- ========================================
 -- TABLA USUARIOS
 -- ========================================
-CREATE TABLE usuarios (
+CREATE TABLE IF NOT EXISTS usuarios (
     id INT PRIMARY KEY AUTO_INCREMENT,
     -- Datos de autenticación
     email VARCHAR(100) NOT NULL UNIQUE,
@@ -87,7 +95,7 @@ CREATE TABLE usuarios (
 -- ========================================
 -- TABLA PERIODO NOMINA
 -- ========================================
-CREATE TABLE periodo_nomina (
+CREATE TABLE IF NOT EXISTS periodo_nomina (
     id INT PRIMARY KEY AUTO_INCREMENT,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL,
@@ -103,7 +111,7 @@ CREATE TABLE periodo_nomina (
 -- ========================================
 -- TABLA NOMINA
 -- ========================================
-CREATE TABLE nomina (
+CREATE TABLE IF NOT EXISTS nomina (
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_periodo INT NOT NULL,
     id_empleado INT NOT NULL,
@@ -142,7 +150,7 @@ CREATE TABLE nomina (
 -- ========================================
 -- TABLA TRANSACCIONES NOMINA
 -- ========================================
-CREATE TABLE transacciones_nomina (
+CREATE TABLE IF NOT EXISTS transacciones_nomina (
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_nomina INT NOT NULL,
     tipo_transaccion ENUM('devengado', 'deduccion') NOT NULL,
@@ -169,7 +177,7 @@ CREATE TABLE transacciones_nomina (
 -- ========================================
 -- TABLA PAGOS NOMINA
 -- ========================================
-CREATE TABLE pagos_nomina (
+CREATE TABLE IF NOT EXISTS pagos_nomina (
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_nomina INT NOT NULL,
     fecha_pago DATE NOT NULL,
@@ -198,7 +206,7 @@ CREATE TABLE pagos_nomina (
 -- ========================================
 -- TABLA NOVEDADES
 -- ========================================
-CREATE TABLE novedades (
+CREATE TABLE IF NOT EXISTS novedades (
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_nomina INT NOT NULL,
     fecha DATE NOT NULL,
@@ -236,7 +244,7 @@ CREATE TABLE novedades (
 -- ========================================
 -- TABLA VENTAS
 -- ========================================
-CREATE TABLE ventas (
+CREATE TABLE IF NOT EXISTS ventas (
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_empleado INT NOT NULL,
     fecha_venta DATE NOT NULL,
@@ -266,18 +274,16 @@ CREATE TABLE ventas (
 -- DATOS INICIALES
 -- ========================================
 
--- Insertar roles básicos
-INSERT INTO roles (nombre, descripcion) VALUES
+INSERT IGNORE INTO roles (nombre, descripcion) VALUES
 ('admin', 'Acceso total al sistema'),
 ('usuario', 'Acceso limitado para tareas específicas'),
 ('empleado', 'Acceso básico para consultar información personal');
 
--- Insertar empresa ejemplo
-INSERT INTO empresa (nit, nombre, tipo, representante, direccion, telefono, email) VALUES
+INSERT IGNORE INTO empresa (nit, nombre, tipo, representante, direccion, telefono, email) VALUES
 ('900123456-7', 'Empresa Ejemplo S.A.S', 'juridica', 'Juan Pérez Martínez', 'Calle 123 #45-67, Bogotá', '+57 1 2345678', 'contacto@empresa.com');
 
 -- Insertar usuarios de ejemplo
-INSERT INTO usuarios (
+INSERT IGNORE INTO usuarios (
     email, password, nombre, apellido, documento, tipo_documento,
     fecha_nacimiento, genero, telefono, direccion, salario_base, cargo,
     fecha_inicio_contrato, tipo_contrato, id_empresa, id_rol, estado
@@ -344,18 +350,18 @@ INSERT INTO usuarios (
 );
 
 -- Insertar período de nómina de ejemplo
-INSERT INTO periodo_nomina (fecha_inicio, fecha_fin, descripcion, estado) VALUES
+INSERT IGNORE INTO periodo_nomina (fecha_inicio, fecha_fin, descripcion, estado) VALUES
 ('2025-10-01', '2025-10-31', 'Período Octubre 2025', 'abierto'),
 ('2025-09-01', '2025-09-30', 'Período Septiembre 2025', 'cerrado');
 
 -- Insertar nóminas de ejemplo
-INSERT INTO nomina (id_periodo, id_empleado, sueldo_base_periodo, horas_trabajadas, estado) VALUES
+INSERT IGNORE INTO nomina (id_periodo, id_empleado, sueldo_base_periodo, horas_trabajadas, estado) VALUES
 (1, 1, 5000000.00, 176.00, 'borrador'),
 (1, 2, 2500000.00, 176.00, 'borrador'),
 (1, 3, 3800000.00, 184.00, 'borrador'); -- Supervisor con horas extras
 
 -- Insertar transacciones de nómina de ejemplo
-INSERT INTO transacciones_nomina (id_nomina, tipo_transaccion, sub_tipo, monto, descripcion) VALUES
+INSERT IGNORE INTO transacciones_nomina (id_nomina, tipo_transaccion, sub_tipo, monto, descripcion) VALUES
 -- Transacciones para administrador (nómina ID 1)
 (1, 'devengado', 'salario_base', 5000000.00, 'Salario base mensual'),
 (1, 'deduccion', 'salud', 200000.00, 'Aporte EPS 4%'),
@@ -374,52 +380,54 @@ INSERT INTO transacciones_nomina (id_nomina, tipo_transaccion, sub_tipo, monto, 
 -- TRIGGERS PARA CÁLCULOS AUTOMÁTICOS
 -- ========================================
 
--- Trigger para calcular totales en nómina
-DELIMITER //
+DROP TRIGGER IF EXISTS tr_calcular_totales_nomina;
 CREATE TRIGGER tr_calcular_totales_nomina 
 BEFORE UPDATE ON nomina
 FOR EACH ROW
-BEGIN
-    -- Calcular total devengados
-    SELECT COALESCE(SUM(monto), 0) INTO NEW.total_devengados
-    FROM transacciones_nomina 
-    WHERE id_nomina = NEW.id AND tipo_transaccion = 'devengado';
-    
-    -- Calcular total deducciones
-    SELECT COALESCE(SUM(monto), 0) INTO NEW.total_deducciones
-    FROM transacciones_nomina 
-    WHERE id_nomina = NEW.id AND tipo_transaccion = 'deduccion';
-    
-    -- Calcular pago neto
-    SET NEW.pago_neto = NEW.total_devengados - NEW.total_deducciones;
-END//
+SET 
+    NEW.total_devengados = (
+        SELECT COALESCE(SUM(monto), 0)
+        FROM transacciones_nomina
+        WHERE id_nomina = NEW.id AND tipo_transaccion = 'devengado'
+    ),
+    NEW.total_deducciones = (
+        SELECT COALESCE(SUM(monto), 0)
+        FROM transacciones_nomina
+        WHERE id_nomina = NEW.id AND tipo_transaccion = 'deduccion'
+    ),
+    NEW.pago_neto = (
+        SELECT COALESCE(SUM(monto), 0)
+        FROM transacciones_nomina
+        WHERE id_nomina = NEW.id AND tipo_transaccion = 'devengado'
+    ) - (
+        SELECT COALESCE(SUM(monto), 0)
+        FROM transacciones_nomina
+        WHERE id_nomina = NEW.id AND tipo_transaccion = 'deduccion'
+    );
 
--- Trigger para actualizar edad automáticamente
+DROP TRIGGER IF EXISTS tr_actualizar_edad_usuario;
 CREATE TRIGGER tr_actualizar_edad_usuario
 BEFORE INSERT ON usuarios
 FOR EACH ROW
-BEGIN
-    IF NEW.fecha_nacimiento IS NOT NULL THEN
-        SET NEW.edad = TIMESTAMPDIFF(YEAR, NEW.fecha_nacimiento, CURDATE());
-    END IF;
-END//
+SET NEW.edad = CASE
+    WHEN NEW.fecha_nacimiento IS NOT NULL THEN TIMESTAMPDIFF(YEAR, NEW.fecha_nacimiento, CURDATE())
+    ELSE NEW.edad
+END;
 
+DROP TRIGGER IF EXISTS tr_actualizar_edad_usuario_update;
 CREATE TRIGGER tr_actualizar_edad_usuario_update
 BEFORE UPDATE ON usuarios
 FOR EACH ROW
-BEGIN
-    IF NEW.fecha_nacimiento IS NOT NULL THEN
-        SET NEW.edad = TIMESTAMPDIFF(YEAR, NEW.fecha_nacimiento, CURDATE());
-    END IF;
-END//
-
-DELIMITER ;
+SET NEW.edad = CASE
+    WHEN NEW.fecha_nacimiento IS NOT NULL THEN TIMESTAMPDIFF(YEAR, NEW.fecha_nacimiento, CURDATE())
+    ELSE NEW.edad
+END;
 
 -- ========================================
 -- VISTAS ÚTILES
 -- ========================================
 
--- Vista de empleados con información completa
+DROP VIEW IF EXISTS vista_empleados;
 CREATE VIEW vista_empleados AS
 SELECT 
     u.id,
@@ -442,7 +450,7 @@ FROM usuarios u
 JOIN empresa e ON u.id_empresa = e.id
 JOIN roles r ON u.id_rol = r.id;
 
--- Vista de nómina con detalles
+DROP VIEW IF EXISTS vista_nomina_detallada;
 CREATE VIEW vista_nomina_detallada AS
 SELECT 
     n.id,
@@ -466,7 +474,6 @@ JOIN usuarios u ON n.id_empleado = u.id;
 -- ÍNDICES ADICIONALES PARA OPTIMIZACIÓN
 -- ========================================
 
--- Índices compuestos para consultas comunes
 CREATE INDEX idx_usuario_empresa_estado ON usuarios(id_empresa, estado);
 CREATE INDEX idx_nomina_periodo_estado ON nomina(id_periodo, estado);
 CREATE INDEX idx_transacciones_nomina_tipo ON transacciones_nomina(id_nomina, tipo_transaccion);
