@@ -1,0 +1,57 @@
+### 1. Test del Servidor
+GET http://localhost:8080/api/auth/test
+
+###
+
+### 2. Login - Juan Pérez (USER)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "juan.perez@email.com",
+  "password": "Qwerty123"
+}
+
+###
+
+### 3. Login - Ana Gómez (USER)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ana.gomez@email.com",
+  "password": "Pass456"
+}
+
+###
+
+### 4. Login - Carlos Ruiz (USER)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "carlos.ruiz@email.com",
+  "password": "Segura789"
+}
+
+###
+
+### 5. Login - Diego Fernández (ADMIN)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "diego.fernandez@email.com",
+  "password": "Contra654"
+}
+
+###
+
+### 6. Login - Credenciales Inválidas (debe fallar)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@noexiste.com",
+  "password": "wrongpassword"
+}
