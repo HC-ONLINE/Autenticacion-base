@@ -52,9 +52,6 @@ public class Usuario {
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comentario> comentarios;
-
     @PrePersist
     protected void onCreate() {
         fechaCreacion = LocalDateTime.now();
