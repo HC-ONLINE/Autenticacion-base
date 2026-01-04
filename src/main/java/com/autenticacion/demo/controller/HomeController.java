@@ -1,10 +1,11 @@
-package com.proaula.nomina.controller;
+package com.autenticacion.demo.controller;
 
-import com.proaula.nomina.security.NominaUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+
+import com.autenticacion.demo.security.NominaUserDetails;
 
 @Controller
 public class HomeController {

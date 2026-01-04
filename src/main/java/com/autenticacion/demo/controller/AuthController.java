@@ -1,4 +1,4 @@
-package com.proaula.nomina.controller;
+package com.autenticacion.demo.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,8 +10,8 @@ public class AuthController {
 
     @GetMapping("/auth/login")
     public String loginPage(@RequestParam(value = "error", required = false) String error,
-                            @RequestParam(value = "logout", required = false) String logout,
-                            Model model) {
+            @RequestParam(value = "logout", required = false) String logout,
+            Model model) {
         if (error != null) {
             model.addAttribute("errorMessage", "Credenciales inválidas. Verifica tu correo y contraseña.");
         }

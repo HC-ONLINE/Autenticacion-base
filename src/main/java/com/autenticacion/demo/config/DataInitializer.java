@@ -1,9 +1,10 @@
-package com.proaula.nomina.config;
+package com.autenticacion.demo.config;
 
-import com.proaula.nomina.model.Rol;
-import com.proaula.nomina.model.Usuario;
-import com.proaula.nomina.repository.RolRepository;
-import com.proaula.nomina.repository.UsuarioRepository;
+import com.autenticacion.demo.model.Rol;
+import com.autenticacion.demo.model.Usuario;
+import com.autenticacion.demo.repository.RolRepository;
+import com.autenticacion.demo.repository.UsuarioRepository;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class DataInitializer {
 
     @Bean
-    public CommandLineRunner initData(UsuarioRepository usuarioRepository, RolRepository rolRepository, PasswordEncoder passwordEncoder) {
+    public CommandLineRunner initData(UsuarioRepository usuarioRepository, RolRepository rolRepository,
+            PasswordEncoder passwordEncoder) {
         return args -> {
             // Crear Rol ADMIN si no existe
             Rol adminRole = rolRepository.findByNombre("ADMIN").orElseGet(() -> {

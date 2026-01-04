@@ -1,4 +1,4 @@
-package com.proaula.nomina.config;
+package com.autenticacion.demo;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

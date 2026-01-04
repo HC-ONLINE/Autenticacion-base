@@ -1,12 +1,14 @@
-package com.proaula.nomina.config;
+package com.autenticacion.demo.config;
 
-import com.proaula.nomina.repository.UsuarioRepository;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.autenticacion.demo.repository.UsuarioRepository;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Component
