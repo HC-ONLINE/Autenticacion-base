@@ -12,20 +12,30 @@ El objetivo es analizar las **diferencias, ventajas y limitaciones** de cada enf
 
 ## Implementaciones disponibles
 
-El repositorio contiene dos ramas principales, cada una con una implementación independiente:
+Explora las dos implementaciones de autenticación desarrolladas en este proyecto:
 
-- `auth-jwt`  
-  Autenticación basada en JWT. Pensada para sistemas stateless y escalables horizontalmente.
+### [auth-jwt](../../tree/auth-jwt) - Autenticación JWT
 
-- `auth-session`  
-  Autenticación basada en sesión. Pensada para escenarios donde se requiere mayor control sobre la revocación y el estado del usuario.
+Implementación stateless con tokens JWT. Ideal para:
+
+- Arquitecturas de microservicios
+- APIs distribuidas
+- Escalabilidad horizontal sin configuración adicional
+
+### [auth-session](../../tree/auth-session) - Autenticación por Sesión
+
+Implementación stateful con sesiones del servidor. Ideal para:
+
+- Control estricto de acceso con revocación inmediata
+- Auditoría completa de sesiones activas
+- Aplicaciones monolíticas o con pocos servidores
 
 Cada rama incluye su propio README con:
 
-- decisiones de diseño
-- flujo de autenticación
-- estructura del proyecto
-- casos de uso cubiertos
+- Decisiones de diseño explicadas
+- Flujo de autenticación detallado
+- Tests de seguridad implementados
+- Trade-offs y limitaciones documentadas
 
 ---
 
@@ -50,6 +60,48 @@ Acceso a recursos protegidos
 
 ---
 
+## Comparación JWT vs Sesión
+
+| Aspecto            | JWT (auth-jwt)                         | Sesión (auth-session)                       |
+|--------------------|----------------------------------------|---------------------------------------------|
+| **Estado**         | Stateless: sin estado en servidor      | Stateful: estado en servidor                |
+| **Almacenamiento** | Cliente (token firmado)                | Servidor (sesión HTTP)                      |
+| **Escalabilidad**  | Horizontal sin configuración adicional | Requiere sticky sessions o store compartido |
+| **Revocación**     | No inmediata (solo por expiración)     | Inmediata (invalidación de sesión)          |
+| **Payload**        | Viaja en cada petición (header)        | Solo cookie con ID de sesión                |
+| **Validación**     | Verificación criptográfica del token   | Consulta de sesión en memoria/store         |
+| **Auditoría**      | Limitada (solo en logs)                | Completa (sesiones activas visibles)        |
+| **Casos de uso**   | APIs distribuidas, microservicios      | Aplicaciones monolíticas, control estricto  |
+
+**¿Qué implementación explorar primero?**
+
+- Elige **auth-jwt** si te interesa arquitecturas distribuidas y escalabilidad stateless
+- Elige **auth-session** si te interesa control de sesiones y revocación inmediata
+
+---
+
+## Qué aprenderás en este repositorio
+
+- **Diferencias prácticas** entre autenticación stateless (JWT) y stateful (sesión)
+- Configuración de **Spring Security** para ambos enfoques
+- **Trade-offs** reales: escalabilidad vs control, simplicidad vs revocación
+- Implementación de **filtros personalizados** (JWT) vs **form login** (sesión)
+- **Tests de seguridad** con MockMvc validando flujos de autenticación y autorización
+- Cuándo elegir cada enfoque según el contexto del proyecto
+
+Cada rama incluye tests que validan la configuración de seguridad y documentación técnica explicando las decisiones de diseño.
+
+---
+
+## Ramas del proyecto
+
+Navega a la implementación que quieres explorar:
+
+- [**auth-jwt**](../../tree/auth-jwt) - Autenticación con JWT (stateless)
+- [**auth-session**](../../tree/auth-session) - Autenticación con sesión (stateful)
+
+---
+
 ## Tecnologías utilizadas
 
 - Java 21
@@ -57,6 +109,8 @@ Acceso a recursos protegidos
 - Spring Security
 - Maven
 - JWT (rama `auth-jwt`)
+- Spring Data JPA
+- Base de datos relacional (MySQL como ejemplo)
 
 ---
 
@@ -66,6 +120,12 @@ Cada implementación puede ejecutarse de forma independiente desde su rama corre
 
 ```bash
 mvn spring-boot:run
+```
+
+Para ejecutar tests:
+
+```bash
+mvn test
 ```
 
 ---
