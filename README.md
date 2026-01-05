@@ -157,17 +157,23 @@ curl http://localhost:8080/ -b cookies.txt
 
 ## Tests
 
-**Estado actual:**
+Tests de seguridad implementados con Spring Boot Test y MockMvc:
 
-- No se han implementado tests automatizados
-- Se requiere testing manual desde navegador o herramientas como Postman
-
-**Casos a cubrir:**
-
-- Login con credenciales válidas → crea sesión y redirige
+- Login válido → crea sesión y redirige a página principal
+- Login con credenciales inválidas → redirige a login con error
 - Acceso sin sesión → redirige a /auth/login
-- Logout → invalida sesión y redirige
-- Acceso con sesión expirada → redirige a login
+- Acceso con sesión válida → 200 OK
+- Logout → invalida sesión con revocación inmediata
+- Login sin CSRF token → 403 Forbidden
+- Usuario inactivo → rechaza autenticación
+
+Los tests validan la configuración de Spring Security, el ciclo de vida de las sesiones y la revocación inmediata de acceso al hacer logout.
+
+**Ejecución:**
+
+```bash
+mvn test
+```
 
 ---
 
